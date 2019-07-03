@@ -24,7 +24,7 @@ if BUILD_TYPE is None:
 # Metadata
 __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
-__copyright__ = u"Copyright (c) 2019 {} <{}>".format(__author__, __email__)
+__copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
 __version__ = "0.0.1"
 __status__ = "Development Status :: 4 - Beta"
@@ -33,6 +33,7 @@ version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".t
 basedir = os.path.dirname(os.path.realpath(__file__))
 sourcedir = os.path.join(basedir, f"MEDCOUPLING-{version_medcoupling}")
 configdir = os.path.join(basedir, f"CONFIGURATION_{version_medcoupling}")
+installdir = os.path.join(basedir, "medcoupling")
 
 # Force platform-specific bdist
 # https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
@@ -93,6 +94,11 @@ def patch_MEDCoupling_Swig_Windows(cmakelists):
         f.writelines(lines)
 
 
+# Cleanup previous built files
+for f in glob.glob(os.path.join(installdir, "*")):
+    if "__init__.py" not in f:
+        os.remove(f)
+
 # Download source files
 print(f"Downloading {MEDCOUPLING_SRC}...")
 filename, _ = urlretrieve(MEDCOUPLING_SRC)
@@ -142,7 +148,6 @@ cmake_build_args = [CMAKE_EXE, "--build", ".", "--config", BUILD_TYPE, "--target
 subprocess.check_call(cmake_build_args, cwd=builddir, env=env)
 
 print(f"Copying C++/Python libary files...")
-installdir = os.path.join(basedir, "medcoupling")
 lib_dir = os.path.join(builddir, "install", "lib")
 for f in glob.glob(os.path.join(lib_dir, "*.dll")):
     shutil.move(f, installdir)

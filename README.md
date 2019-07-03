@@ -7,7 +7,7 @@ This repository provides a Python repackaging of the latest version (9.3.0) of t
 Running `python3 setup.py build` will
 
 1. Download the source code of MEDCoupling from [salome-platform.org](http://files.salome-platform.org/Salome/other/medCoupling-9.3.0.tar.gz)
-2. Builing the C++ / Python libraries using `cmake` and `swig`
+2. Build the C++ / Python libraries using `cmake` and `swig`
 3. Distribute generated files using `setuptools`
 
 ### Installation
