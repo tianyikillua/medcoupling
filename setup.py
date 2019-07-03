@@ -22,16 +22,17 @@ if BUILD_TYPE is None:
     BUILD_TYPE = "Release"
 
 # Metadata
-__author__ = "CEA/DEN, EDF R&D"
-__email__ = "webmaster.salome@opencascade.com"
-__copyright__ = u"Copyright (c) 2015-2019 {} <{}>".format(__author__, __email__)
+__author__ = "Tianyi Li"
+__email__ = "tianyikillua@gmail.com"
+__copyright__ = u"Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
-__status__ = "Development Status :: 5 - Production/Stable"
+__version__ = "0.0.1"
+__status__ = "Development Status :: 4 - Beta"
 
+version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
 basedir = os.path.dirname(os.path.realpath(__file__))
-sourcedir = os.path.join(basedir, f"MEDCOUPLING-{__version__}")
-configdir = os.path.join(basedir, f"CONFIGURATION_{__version__}")
+sourcedir = os.path.join(basedir, f"MEDCOUPLING-{version_medcoupling}")
+configdir = os.path.join(basedir, f"CONFIGURATION_{version_medcoupling}")
 
 # Force platform-specific bdist
 # https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
@@ -131,6 +132,8 @@ if PYTHON_ROOT_DIR is not None:
     cmake_args += [f"-DPYTHON_ROOT_DIR={PYTHON_ROOT_DIR}"]
 if SWIG_ROOT_DIR is not None:
     cmake_args += [f"-DSWIG_ROOT_DIR={SWIG_ROOT_DIR}"]
+if platform.system() == "Linux":
+    cmake_args += ["-DMEDCOUPLING_BUILD_STATIC=ON"]
 
 env = os.environ.copy()
 subprocess.check_call(cmake_args, cwd=builddir, env=env)
@@ -163,11 +166,11 @@ setup(
     version=__version__,
     packages=find_packages(),
     package_data={"": ["*.dll", "*.so", "*.pyd"]},
-    url="https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html",
+    url="https://github.com/tianyikillua/medcoupling-pypi",
     author=__author__,
     author_email=__email__,
     install_requires=["numpy"],
-    description="The MEDCoupling tool gathers several powerful functionalities around the input and output data of simulation codes (meshes and fields mainly).",
+    description="Python repackaging of the MEDCoupling library",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     license=__license__,
