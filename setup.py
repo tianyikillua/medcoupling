@@ -162,7 +162,7 @@ shutil.rmtree(sourcedir, ignore_errors=True)
 
 
 setup(
-    name="medcoupling",
+    name="medcoupling-pypi",
     version=__version__,
     packages=find_packages(),
     package_data={"": ["*.dll", "*.so", "*.pyd"]},
