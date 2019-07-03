@@ -1,5 +1,7 @@
 # MEDCoupling
 
+[![PyPi Version](https://img.shields.io/pypi/v/medcoupling.svg?style=flat-square)](https://pypi.org/project/medcoupling)
+
 This repository provides a re-packing of the [MEDCoupling](https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html) library via `setup.py` and hence installable via `pip`.
 
 ### Installation
