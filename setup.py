@@ -166,6 +166,7 @@ setup(
     url="https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html",
     author=__author__,
     author_email=__email__,
+    install_requires=["numpy"],
     description="The MEDCoupling tool gathers several powerful functionalities around the input and output data of simulation codes (meshes and fields mainly).",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
