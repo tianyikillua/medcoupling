@@ -30,8 +30,7 @@ __version__ = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
 __status__ = "Development Status :: 5 - Production/Stable"
 
 basedir = os.path.dirname(os.path.realpath(__file__))
-sourcedir_old = os.path.join(basedir, f"MEDCOUPLING-{__version__}")
-sourcedir = os.path.join(basedir, f"MEDCOUPLING-{__version__}-src")
+sourcedir = os.path.join(basedir, f"MEDCOUPLING-{__version__}")
 configdir = os.path.join(basedir, f"CONFIGURATION_{__version__}")
 
 # Force platform-specific bdist
@@ -94,22 +93,20 @@ def patch_MEDCoupling_Swig_Windows(cmakelists):
 
 
 # Download source files
-if not os.path.isdir(sourcedir):
-    print(f"Downloading {MEDCOUPLING_SRC}...")
-    filename, _ = urlretrieve(MEDCOUPLING_SRC)
-    src = tarfile.open(filename)
-    print(f"Extracting...")
-    src.extractall()
-    os.rename(sourcedir_old, sourcedir)
+print(f"Downloading {MEDCOUPLING_SRC}...")
+filename, _ = urlretrieve(MEDCOUPLING_SRC)
+src = tarfile.open(filename)
+print(f"Extracting...")
+src.extractall()
 
-    # Apply patch for Windows
-    if platform.system() == "Windows":
-        print(f"Applying patch for Windows...")
-        cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
-        if not os.path.isfile(cmakelists):
-            print(f"Unable to find {cmakelists}")
-            sys.exit(1)
-        patch_MEDCoupling_Swig_Windows(cmakelists)
+# Apply patch for Windows
+if platform.system() == "Windows":
+    print(f"Applying patch for Windows...")
+    cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
+    if not os.path.isfile(cmakelists):
+        print(f"Unable to find {cmakelists}")
+        sys.exit(1)
+    patch_MEDCoupling_Swig_Windows(cmakelists)
 
 # Building
 check_os()
@@ -146,12 +143,19 @@ installdir = os.path.join(basedir, "medcoupling")
 lib_dir = os.path.join(builddir, "install", "lib")
 for f in glob.glob(os.path.join(lib_dir, "*.dll")):
     shutil.move(f, installdir)
+for f in glob.glob(os.path.join(lib_dir, "*.so")):
+    shutil.move(f, installdir)
 
 python_dir = os.path.join(lib_dir, "python3.6", "site-packages")
 for f in glob.glob(os.path.join(python_dir, "*.py*")):
     shutil.move(f, installdir)
 for f in glob.glob(os.path.join(python_dir, "*.so")):
     shutil.move(f, installdir)
+
+
+# Remove source files
+shutil.rmtree(configdir, ignore_errors=True)
+shutil.rmtree(sourcedir, ignore_errors=True)
 
 
 setup(
