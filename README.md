@@ -28,7 +28,7 @@ import medcoupling  # should not raise error
 
 The version of this package (on PyPI) follows that of MEDCoupling. For MEDCoupling 9.3.0 for instance, we use
 ```
-9.3.0r1, 9.3.0r2, ...
+v9.3.0r1, v9.3.0r2, ...
 ```
 to designate all PyPI releases based on MEDCoupling 9.3.0. The suffix `r[x]` is included (abusively, since according to PEP 440 it is for post releases) for possible bug fixes coming from this package.
 
