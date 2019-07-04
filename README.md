@@ -1,6 +1,6 @@
 # MEDCoupling
 
-[![PyPi Version](https://img.shields.io/pypi/v/medcoupling-pypi.svg?style=flat-square)](https://pypi.org/project/medcoupling-pypi)
+[![PyPi Version](https://img.shields.io/pypi/v/medcoupling.svg?style=flat-square)](https://pypi.org/project/medcoupling)
 
 This repository provides a Python repackaging of the latest version (9.3.0) of the [MEDCoupling](https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html) library via a Python file `setup.py` and hence installable via `pip`.
 
@@ -14,7 +14,7 @@ Running `python3 setup.py build` will
 
 To install MEDCoupling, you can now simply use `pip` and its associated options
 ```
-pip install -U medcoupling-pypi
+pip install -U medcoupling
 ```
 
 Binary wheels are available for 64-bit Windows (`win_amd64`) and Linux-like platforms (`manylinux1_x86_64`). In accordance with the [release notes of SALOME 9.3.0](https://files.salome-platform.org/Salome/Salome9.3.0/SALOME_9_3_0_Release_Notes.pdf), the wheels are only built with Python 3.6. Sadly macOS is not supported (consult developers of MEDCoupling).
@@ -23,6 +23,14 @@ To assure that MEDCoupling is well installed, try importing it in your Python
 ```
 import medcoupling  # should not raise error
 ```
+
+### Versioning
+
+The version of this package (on PyPI) follows that of MEDCoupling. For MEDCoupling 9.3.0 for instance, we use
+```
+9.3.0r1, 9.3.0r2, ...
+```
+to designate all PyPI releases based on MEDCoupling 9.3.0. The suffix `r[x]` is included (abusively, since according to PEP 440 it is for post releases) for possible bug fixes coming from this package.
 
 ### Uploading to PyPI
 

@@ -26,7 +26,7 @@ __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
 __copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "0.0.1"
+__version__ = "9.3.0r1"
 __status__ = "Development Status :: 4 - Beta"
 
 version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
@@ -167,11 +167,11 @@ shutil.rmtree(sourcedir, ignore_errors=True)
 
 
 setup(
-    name="medcoupling-pypi",
+    name="medcoupling",
     version=__version__,
     packages=find_packages(),
     package_data={"": ["*.dll", "*.so", "*.pyd"]},
-    url="https://github.com/tianyikillua/medcoupling-pypi",
+    url="https://github.com/tianyikillua/medcoupling",
     author=__author__,
     author_email=__email__,
     install_requires=["numpy"],
