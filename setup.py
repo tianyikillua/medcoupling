@@ -26,7 +26,7 @@ __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
 __copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "9.3.0r1"
+__version__ = "9.3.0r2"
 __status__ = "Development Status :: 4 - Beta"
 
 version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
@@ -74,15 +74,22 @@ def check_python():
     if not shutil.which("python") and not shutil.which("python3"):
         print("python or python3 executable not found. Set PYTHON_ROOT_DIR environment or update your path")
         sys.exit(1)
-    elif sys.version_info.major < 3 or sys.version_info.minor > 6 or sys.version_info.minor < 6:
-        print("only python 3.6 is supported")
-        sys.exit(1)
     else:
         try:
             import numpy
         except ImportError:
             print("numpy is not installed")
             sys.exit(1)
+
+
+def patch_MEDCoupling_Swig(memarray):
+    with open(memarray, "r") as f:
+        lines = f.read()
+
+    lines = lines.replace("char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)",
+                          "const char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)")
+    with open(memarray, "w") as f:
+        f.write(lines)
 
 
 def patch_MEDCoupling_Swig_Windows(cmakelists):
@@ -93,6 +100,12 @@ def patch_MEDCoupling_Swig_Windows(cmakelists):
     with open(cmakelists, "w") as f:
         f.writelines(lines)
 
+
+# Preliminary checks
+check_os()
+check_cmake()
+check_swig()
+check_python()
 
 # Cleanup previous built files
 for f in glob.glob(os.path.join(installdir, "*")):
@@ -106,7 +119,10 @@ src = tarfile.open(filename)
 print(f"Extracting...")
 src.extractall()
 
-# Apply patch for Windows
+# Apply patches
+print("Applying patch...")
+memarray = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "MEDCouplingMemArray.i")
+patch_MEDCoupling_Swig(memarray)
 if platform.system() == "Windows":
     print(f"Applying patch for Windows...")
     cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
@@ -116,11 +132,6 @@ if platform.system() == "Windows":
     patch_MEDCoupling_Swig_Windows(cmakelists)
 
 # Building
-check_os()
-check_cmake()
-check_swig()
-check_python()
-
 builddir = os.path.join(sourcedir, "build")
 os.makedirs(builddir, exist_ok=True)
 
@@ -154,7 +165,7 @@ for f in glob.glob(os.path.join(lib_dir, "*.dll")):
 for f in glob.glob(os.path.join(lib_dir, "*.so")):
     shutil.move(f, installdir)
 
-python_dir = os.path.join(lib_dir, "python3.6", "site-packages")
+python_dir = os.path.join(lib_dir, "python3.*", "site-packages")
 for f in glob.glob(os.path.join(python_dir, "*.py*")):
     shutil.move(f, installdir)
 for f in glob.glob(os.path.join(python_dir, "*.so")):
@@ -187,6 +198,7 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",

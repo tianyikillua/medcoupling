@@ -4,20 +4,24 @@
 
 This repository provides a Python repackaging of the latest version (9.3.0) of the [MEDCoupling](https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html) library via a Python file `setup.py` and hence installable via `pip`.
 
-Running `python3 setup.py build` will
+### Building from source
+
+Running `python setup.py install` or `pip install .` will
 
 1. Download the source code of MEDCoupling from [salome-platform.org](http://files.salome-platform.org/Salome/other/medCoupling-9.3.0.tar.gz)
 2. Build the C++ / Python libraries using `cmake` and `swig`
-3. Distribute generated files using `setuptools`
+3. Distribute and install generated files using `setuptools`
 
-### Installation
+The building process has been tested under Windows 10 with Visual Studio 2019 and under Ubuntu 18.04 with gcc 7.4.
 
-To install MEDCoupling, you can now simply use `pip` and its associated options
+### Installation from PyPI
+
+To install MEDCoupling, you can also simply use the binary wheels available on PyPI
 ```
 pip install -U medcoupling
 ```
 
-Binary wheels are available for 64-bit Windows (`win_amd64`) and Linux-like platforms (`manylinux1_x86_64`). In accordance with the [release notes of SALOME 9.3.0](https://files.salome-platform.org/Salome/Salome9.3.0/SALOME_9_3_0_Release_Notes.pdf), the wheels are only built with Python 3.6. Sadly macOS is not supported (consult developers of MEDCoupling).
+Binary wheels are available for 64-bit Windows (`win_amd64`) and Linux-like platforms (`manylinux1_x86_64`) and are built with Python 3.6 and 3.7. Sadly macOS is not supported (consult developers of MEDCoupling).
 
 To assure that MEDCoupling is well installed, try importing it in your Python
 ```
@@ -34,15 +38,19 @@ to designate all PyPI releases based on MEDCoupling 9.3.0. The suffix `r[x]` is 
 
 ### Uploading to PyPI
 
-To upload binary wheels to PyPI, type
+To upload source and binary wheels to PyPI, type
 ```
-# on Windows
+# Source
+python setup.py sdist
+
+# Binary on Windows
 python setup.py bdist_wheel --plat-name win_amd64
 
-# on Linux
-python3 setup.py bdist_wheel --plat-name manylinux1_x86_64
+# Binary on Linux
+python setup.py bdist_wheel --plat-name manylinux1_x86_64
 
-python[3] -m twine upload dist/*
+# Upload to PyPI
+python -m twine upload dist/*
 ```
 
 ### License
