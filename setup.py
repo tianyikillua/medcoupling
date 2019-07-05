@@ -9,17 +9,7 @@ import tarfile
 from urllib.request import urlretrieve
 
 from setuptools import find_packages, setup
-
-# Source file to download
-MEDCOUPLING_SRC = "http://files.salome-platform.org/Salome/other/medCoupling-9.3.0.tar.gz"
-
-# Environment variables
-CMAKE_EXE = os.environ.get("CMAKE_EXE", shutil.which("cmake"))
-SWIG_ROOT_DIR = os.environ.get("SWIG_ROOT_DIR")
-PYTHON_ROOT_DIR = os.environ.get("PYTHON_ROOT_DIR")
-BUILD_TYPE = os.environ.get("BUILD_TYPE")
-if BUILD_TYPE is None:
-    BUILD_TYPE = "Release"
+from setuptools.command.build_py import build_py as _build_py
 
 # Metadata
 __author__ = "Tianyi Li"
@@ -29,11 +19,155 @@ __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (
 __version__ = "9.3.0r2"
 __status__ = "Development Status :: 4 - Beta"
 
-version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
 basedir = os.path.dirname(os.path.realpath(__file__))
-sourcedir = os.path.join(basedir, f"MEDCOUPLING-{version_medcoupling}")
-configdir = os.path.join(basedir, f"CONFIGURATION_{version_medcoupling}")
-installdir = os.path.join(basedir, "medcoupling")
+
+
+def download_build_medcoupling():
+
+    # Source file to download
+    MEDCOUPLING_SRC = "http://files.salome-platform.org/Salome/other/medCoupling-9.3.0.tar.gz"
+
+    # Environment variables
+    CMAKE_EXE = os.environ.get("CMAKE_EXE", shutil.which("cmake"))
+    SWIG_ROOT_DIR = os.environ.get("SWIG_ROOT_DIR")
+    PYTHON_ROOT_DIR = os.environ.get("PYTHON_ROOT_DIR")
+    BUILD_TYPE = os.environ.get("BUILD_TYPE")
+    if BUILD_TYPE is None:
+        BUILD_TYPE = "Release"
+
+    version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(".tar")[0]
+    sourcedir = os.path.join(basedir, f"MEDCOUPLING-{version_medcoupling}")
+    configdir = os.path.join(basedir, f"CONFIGURATION_{version_medcoupling}")
+    installdir = os.path.join(basedir, "medcoupling")
+
+    def check_os():
+        system = platform.system()
+        if system == "Darwin":
+            print("macOS not yet supported")
+            sys.exit(1)
+
+    def check_cmake():
+        if not CMAKE_EXE:
+            print("cmake executable not found. Set CMAKE_EXE environment or update your path")
+            sys.exit(1)
+
+    def check_swig():
+        if not shutil.which("swig"):
+            print("swig executable not found. Set SWIG_ROOT_DIR environment or update your path")
+            sys.exit(1)
+
+    def check_python():
+        if not shutil.which("python") and not shutil.which("python3"):
+            print("python or python3 executable not found. Set PYTHON_ROOT_DIR environment or update your path")
+            sys.exit(1)
+        else:
+            try:
+                import numpy
+            except ImportError:
+                print("numpy is not installed")
+                sys.exit(1)
+
+    def patch_MEDCoupling_Swig(memarray):
+        with open(memarray, "r") as f:
+            lines = f.read()
+
+        lines = lines.replace("char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)",
+                              "const char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)")
+        with open(memarray, "w") as f:
+            f.write(lines)
+
+    def patch_MEDCoupling_Swig_Windows(cmakelists):
+        with open(cmakelists, "r") as f:
+            lines = f.readlines()
+
+        lines.insert(94, '  SET(SWIG_MODULE_MEDCouplingCompat_EXTRA_FLAGS "${NUMPY_DEFINITIONS};${SCIPY_DEFINITIONS}")\n')
+        with open(cmakelists, "w") as f:
+            f.writelines(lines)
+
+    # Preliminary checks
+    check_os()
+    check_cmake()
+    check_swig()
+    check_python()
+
+    # Cleanup previous built files
+    for f in glob.glob(os.path.join(installdir, "*")):
+        if "__init__.py" not in f:
+            os.remove(f)
+
+    # Download source files
+    print(f"Downloading {MEDCOUPLING_SRC}...")
+    filename, _ = urlretrieve(MEDCOUPLING_SRC)
+    src = tarfile.open(filename)
+    print(f"Extracting...")
+    src.extractall()
+
+    # Apply patches
+    print("Applying patch...")
+    memarray = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "MEDCouplingMemArray.i")
+    patch_MEDCoupling_Swig(memarray)
+    if platform.system() == "Windows":
+        print(f"Applying patch for Windows...")
+        cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
+        if not os.path.isfile(cmakelists):
+            print(f"Unable to find {cmakelists}")
+            sys.exit(1)
+        patch_MEDCoupling_Swig_Windows(cmakelists)
+
+    # Building
+    builddir = os.path.join(sourcedir, "build")
+    os.makedirs(builddir, exist_ok=True)
+
+    cmake_args = [CMAKE_EXE, sourcedir,
+                  f"-DCONFIGURATION_ROOT_DIR={configdir}",
+                  f"-DCMAKE_INSTALL_PREFIX=install",
+                  "-DMEDCOUPLING_MICROMED=ON",
+                  "-DMEDCOUPLING_BUILD_DOC=OFF",
+                  "-DMEDCOUPLING_ENABLE_PARTITIONER=OFF",
+                  "-DMEDCOUPLING_BUILD_TESTS=OFF",
+                  "-DMEDCOUPLING_ENABLE_RENUMBER=OFF",
+                  "-DMEDCOUPLING_WITH_FILE_EXAMPLES=OFF"
+                  "-DCMAKE_BUILD_TYPE=" + BUILD_TYPE]
+    if PYTHON_ROOT_DIR is not None:
+        cmake_args += [f"-DPYTHON_ROOT_DIR={PYTHON_ROOT_DIR}"]
+    if SWIG_ROOT_DIR is not None:
+        cmake_args += [f"-DSWIG_ROOT_DIR={SWIG_ROOT_DIR}"]
+    if platform.system() == "Linux":
+        cmake_args += ["-DMEDCOUPLING_BUILD_STATIC=ON"]
+
+    env = os.environ.copy()
+    subprocess.check_call(cmake_args, cwd=builddir, env=env)
+
+    cmake_build_args = [CMAKE_EXE, "--build", ".", "--config", BUILD_TYPE, "--target", "install"]
+    subprocess.check_call(cmake_build_args, cwd=builddir, env=env)
+
+    print("Copying C++/Python libary files...")
+    lib_dir = os.path.join(builddir, "install", "lib")
+    for f in glob.glob(os.path.join(lib_dir, "*.dll")):
+        shutil.move(f, installdir)
+    for f in glob.glob(os.path.join(lib_dir, "*.so")):
+        shutil.move(f, installdir)
+
+    python_dir = os.path.join(lib_dir, "python3.*", "site-packages")
+    for f in glob.glob(os.path.join(python_dir, "*.py*")):
+        shutil.move(f, installdir)
+    for f in glob.glob(os.path.join(python_dir, "*.so")):
+        shutil.move(f, installdir)
+
+    # Remove source files
+    shutil.rmtree(configdir, ignore_errors=True)
+    shutil.rmtree(sourcedir, ignore_errors=True)
+
+
+class build_py(_build_py):
+    def run(self):
+        download_build_medcoupling()
+        _build_py.run(self)
+
+
+def read(fname):
+    return codecs.open(os.path.join(basedir, fname), encoding="utf-8").read()
+
 
 # Force platform-specific bdist
 # https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
@@ -45,136 +179,6 @@ try:
             self.root_is_pure = False
 except ImportError:
     bdist_wheel = None
-
-
-def read(fname):
-    return codecs.open(os.path.join(basedir, fname), encoding="utf-8").read()
-
-
-def check_os():
-    system = platform.system()
-    if system == "Darwin":
-        print("macOS not yet supported")
-        sys.exit(1)
-
-
-def check_cmake():
-    if not CMAKE_EXE:
-        print("cmake executable not found. Set CMAKE_EXE environment or update your path")
-        sys.exit(1)
-
-
-def check_swig():
-    if not shutil.which("swig"):
-        print("swig executable not found. Set SWIG_ROOT_DIR environment or update your path")
-        sys.exit(1)
-
-
-def check_python():
-    if not shutil.which("python") and not shutil.which("python3"):
-        print("python or python3 executable not found. Set PYTHON_ROOT_DIR environment or update your path")
-        sys.exit(1)
-    else:
-        try:
-            import numpy
-        except ImportError:
-            print("numpy is not installed")
-            sys.exit(1)
-
-
-def patch_MEDCoupling_Swig(memarray):
-    with open(memarray, "r") as f:
-        lines = f.read()
-
-    lines = lines.replace("char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)",
-                          "const char *pt=PyUnicode_AsUTF8AndSize(obj, &sz)")
-    with open(memarray, "w") as f:
-        f.write(lines)
-
-
-def patch_MEDCoupling_Swig_Windows(cmakelists):
-    with open(cmakelists, "r") as f:
-        lines = f.readlines()
-
-    lines.insert(94, '  SET(SWIG_MODULE_MEDCouplingCompat_EXTRA_FLAGS "${NUMPY_DEFINITIONS};${SCIPY_DEFINITIONS}")\n')
-    with open(cmakelists, "w") as f:
-        f.writelines(lines)
-
-
-# Preliminary checks
-check_os()
-check_cmake()
-check_swig()
-check_python()
-
-# Cleanup previous built files
-for f in glob.glob(os.path.join(installdir, "*")):
-    if "__init__.py" not in f:
-        os.remove(f)
-
-# Download source files
-print(f"Downloading {MEDCOUPLING_SRC}...")
-filename, _ = urlretrieve(MEDCOUPLING_SRC)
-src = tarfile.open(filename)
-print(f"Extracting...")
-src.extractall()
-
-# Apply patches
-print("Applying patch...")
-memarray = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "MEDCouplingMemArray.i")
-patch_MEDCoupling_Swig(memarray)
-if platform.system() == "Windows":
-    print(f"Applying patch for Windows...")
-    cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
-    if not os.path.isfile(cmakelists):
-        print(f"Unable to find {cmakelists}")
-        sys.exit(1)
-    patch_MEDCoupling_Swig_Windows(cmakelists)
-
-# Building
-builddir = os.path.join(sourcedir, "build")
-os.makedirs(builddir, exist_ok=True)
-
-cmake_args = [CMAKE_EXE, sourcedir,
-              f"-DCONFIGURATION_ROOT_DIR={configdir}",
-              f"-DCMAKE_INSTALL_PREFIX=install",
-              "-DMEDCOUPLING_MICROMED=ON",
-              "-DMEDCOUPLING_BUILD_DOC=OFF",
-              "-DMEDCOUPLING_ENABLE_PARTITIONER=OFF",
-              "-DMEDCOUPLING_BUILD_TESTS=OFF",
-              "-DMEDCOUPLING_ENABLE_RENUMBER=OFF",
-              "-DMEDCOUPLING_WITH_FILE_EXAMPLES=OFF"
-              "-DCMAKE_BUILD_TYPE=" + BUILD_TYPE]
-if PYTHON_ROOT_DIR is not None:
-    cmake_args += [f"-DPYTHON_ROOT_DIR={PYTHON_ROOT_DIR}"]
-if SWIG_ROOT_DIR is not None:
-    cmake_args += [f"-DSWIG_ROOT_DIR={SWIG_ROOT_DIR}"]
-if platform.system() == "Linux":
-    cmake_args += ["-DMEDCOUPLING_BUILD_STATIC=ON"]
-
-env = os.environ.copy()
-subprocess.check_call(cmake_args, cwd=builddir, env=env)
-
-cmake_build_args = [CMAKE_EXE, "--build", ".", "--config", BUILD_TYPE, "--target", "install"]
-subprocess.check_call(cmake_build_args, cwd=builddir, env=env)
-
-print(f"Copying C++/Python libary files...")
-lib_dir = os.path.join(builddir, "install", "lib")
-for f in glob.glob(os.path.join(lib_dir, "*.dll")):
-    shutil.move(f, installdir)
-for f in glob.glob(os.path.join(lib_dir, "*.so")):
-    shutil.move(f, installdir)
-
-python_dir = os.path.join(lib_dir, "python3.*", "site-packages")
-for f in glob.glob(os.path.join(python_dir, "*.py*")):
-    shutil.move(f, installdir)
-for f in glob.glob(os.path.join(python_dir, "*.so")):
-    shutil.move(f, installdir)
-
-
-# Remove source files
-shutil.rmtree(configdir, ignore_errors=True)
-shutil.rmtree(sourcedir, ignore_errors=True)
 
 
 setup(
@@ -203,5 +207,5 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    cmdclass={"bdist_wheel": bdist_wheel},
+    cmdclass={"build_py": build_py, "bdist_wheel": bdist_wheel},
 )

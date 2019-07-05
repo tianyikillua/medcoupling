@@ -47,7 +47,7 @@ python setup.py sdist
 python setup.py bdist_wheel --plat-name win_amd64
 
 # Binary on Linux
-python setup.py bdist_wheel --plat-name manylinux1_x86_64
+python3 setup.py bdist_wheel --plat-name manylinux1_x86_64
 
 # Upload to PyPI
 python -m twine upload dist/*
