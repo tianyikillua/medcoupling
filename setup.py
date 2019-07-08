@@ -16,7 +16,7 @@ __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
 __copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "9.3.0r2"
+__version__ = "9.3.0r3"
 __status__ = "Development Status :: 4 - Beta"
 
 basedir = os.path.dirname(os.path.realpath(__file__))
@@ -76,6 +76,14 @@ def download_build_medcoupling():
         with open(memarray, "w") as f:
             f.write(lines)
 
+    def patch_MEDCoupling_Swig_Linux(cmakelists):
+        with open(cmakelists, "r") as f:
+            lines = f.read()
+
+        lines = lines.replace("${PYTHON_LIBRARIES} ", "")
+        with open(cmakelists, "w") as f:
+            f.write(lines)
+
     def patch_MEDCoupling_Swig_Windows(cmakelists):
         with open(cmakelists, "r") as f:
             lines = f.readlines()
@@ -106,12 +114,17 @@ def download_build_medcoupling():
     print("Applying patch...")
     memarray = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "MEDCouplingMemArray.i")
     patch_MEDCoupling_Swig(memarray)
+
+    if platform.system() == "Linux":
+        print(f"Applying patch for Linux...")
+        cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
+        patch_MEDCoupling_Swig_Linux(cmakelists)
+        cmakelists = os.path.join(sourcedir, "src", "PyWrapping", "CMakeLists.txt")
+        patch_MEDCoupling_Swig_Linux(cmakelists)
+
     if platform.system() == "Windows":
         print(f"Applying patch for Windows...")
         cmakelists = os.path.join(sourcedir, "src", "MEDCoupling_Swig", "CMakeLists.txt")
-        if not os.path.isfile(cmakelists):
-            print(f"Unable to find {cmakelists}")
-            sys.exit(1)
         patch_MEDCoupling_Swig_Windows(cmakelists)
 
     # Building
