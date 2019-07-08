@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e -x
+
 yum install -y pcre-devel
 curl -L https://github.com/swig/swig/archive/rel-4.0.0.tar.gz | tar xz \
 && cd swig-rel-4.0.0 && ./autogen.sh && ./configure --without-alllang && make && make install
