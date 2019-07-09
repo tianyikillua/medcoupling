@@ -19,7 +19,7 @@ Running `python setup.py install` or `pip install .` will
 2. Build the C++ / Python libraries using `cmake` and `swig`
 3. Distribute and install generated files using `setuptools`
 
-The building process has been tested under Windows 10 with Visual Studio 2019 and under Ubuntu 18.04 with gcc 7.4.
+The building process has been tested under Windows 10 with Visual Studio 2019, under Ubuntu 18.04 with gcc 7.4, and under the [manylinux2010](https://github.com/pypa/python-manylinux-demo) platform.
 
 ### Installation from PyPI
 
@@ -28,7 +28,7 @@ To install MEDCoupling, you can also simply use the binary wheels available on P
 pip install -U medcoupling
 ```
 
-Binary wheels are available for 64-bit Windows (`win_amd64`) and Linux-like platforms (`manylinux1_x86_64`) and are built with Python 3.6 and 3.7. Sadly macOS is not supported (consult developers of MEDCoupling).
+Binary wheels are available for 64-bit Windows (`win_amd64`) and Linux-like platforms (`manylinux2010_x86_64`) and are built with Python 3.6 and 3.7. Sadly macOS is not supported (consult developers of MEDCoupling).
 
 To assure that MEDCoupling is well installed, try importing it in your Python
 ```
