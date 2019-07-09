@@ -1,8 +1,15 @@
 # MEDCoupling
 
+[![travis](https://img.shields.io/travis/tianyikillua/medcoupling.svg?style=flat-square)](https://travis-ci.org/tianyikillua/medcoupling)
 [![pypi](https://img.shields.io/pypi/v/medcoupling.svg?style=flat-square)](https://pypi.org/project/medcoupling)
 
 This repository provides a Python repackaging of the latest version (9.3.0) of the [MEDCoupling](https://docs.salome-platform.org/latest/dev/MEDCoupling/developer/index.html) library via a Python file `setup.py` and hence installable via `pip`.
+
+The initial purpose of this redistribution is to mainly use the remapping algorithms of MEDCoupling (see also [pymapping](https://github.com/tianyikillua/pymapping)). Hence the following MEDCoupling functionalities are NOT supported
+
+- MED file reading/writing via `MEDLoader`, so the `MED-file` library is not required (`MEDCOUPLING_MICROMED=ON`)
+- Parallel functionalities (`MEDCOUPLING_ENABLE_PARTITIONER=OFF`)
+- Renumbering (`MEDCOUPLING_ENABLE_RENUMBER=OFF`), depending on `boost`
 
 ### Building from source
 

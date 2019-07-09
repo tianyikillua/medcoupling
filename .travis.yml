@@ -9,5 +9,5 @@ install:
   - docker pull $DOCKER_IMAGE
 
 script:
-  - docker run --rm -v `pwd`:/io $DOCKER_IMAGE /io/travis/build-wheels.sh
+  - docker run --rm -v `pwd`:/io -w /io $DOCKER_IMAGE /io/travis/build-wheels.sh
   - ls /io/dist/
