@@ -39,8 +39,8 @@ def download_build_medcoupling():
     version_medcoupling = MEDCOUPLING_SRC.partition("medCoupling-")[2].partition(
         ".tar"
     )[0]
-    sourcedir = os.path.join(basedir, f"MEDCOUPLING-{version_medcoupling}")
-    configdir = os.path.join(basedir, f"CONFIGURATION_{version_medcoupling}")
+    sourcedir = os.path.join(basedir, f"medCoupling-{version_medcoupling}")
+    configdir = os.path.join(basedir, f"configuration-{version_medcoupling}")
     installdir = os.path.join(basedir, "medcoupling")
 
     def check_cmake():
@@ -89,6 +89,9 @@ def download_build_medcoupling():
 
     # Apply patches
     print("Applying patch...")
+    subprocess.run(
+        "patch -s -p0 < patches/configuration.patch", cwd=basedir, shell=True
+    )
     subprocess.run("patch -s -p0 < patches/medcoupling.patch", cwd=basedir, shell=True)
 
     # Building
