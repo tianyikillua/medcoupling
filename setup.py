@@ -15,7 +15,7 @@ __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
 __copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "9.3.0r4"
+__version__ = "9.4.0r1"
 __status__ = "Development Status :: 4 - Beta"
 
 basedir = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ def download_build_medcoupling():
 
     # Source file to download
     MEDCOUPLING_SRC = (
-        "http://files.salome-platform.org/Salome/other/medCoupling-9.3.0.tar.gz"
+        "http://files.salome-platform.org/Salome/other/medCoupling-9.4.0.tar.gz"
     )
 
     # Environment variables
@@ -89,9 +89,6 @@ def download_build_medcoupling():
 
     # Apply patches
     print("Applying patch...")
-    subprocess.run(
-        "patch -s -p0 < patches/configuration.patch", cwd=basedir, shell=True
-    )
     subprocess.run("patch -s -p0 < patches/medcoupling.patch", cwd=basedir, shell=True)
 
     # Building
@@ -101,8 +98,7 @@ def download_build_medcoupling():
     cmake_args = [
         CMAKE_EXE,
         sourcedir,
-        f"-DCONFIGURATION_ROOT_DIR={configdir}",
-        f"-DCMAKE_INSTALL_PREFIX=install",
+        "-DCMAKE_INSTALL_PREFIX=install",
         "-DMEDCOUPLING_MICROMED=ON",
         "-DMEDCOUPLING_BUILD_DOC=OFF",
         "-DMEDCOUPLING_ENABLE_PARTITIONER=OFF",
@@ -117,8 +113,11 @@ def download_build_medcoupling():
         cmake_args += [f"-DSWIG_ROOT_DIR={SWIG_ROOT_DIR}"]
     if platform.system() != "Windows":
         cmake_args += ["-DMEDCOUPLING_BUILD_STATIC=ON"]
+    else:
+        cmake_args += ["-G", "Visual Studio 15 2017 Win64"]
 
     env = os.environ.copy()
+    env["CONFIGURATION_ROOT_DIR"] = configdir
     subprocess.check_call(cmake_args, cwd=builddir, env=env)
 
     cmake_build_args = [
@@ -190,7 +189,6 @@ setup(
         # See <https://pypi.org/classifiers/> for all classifiers.
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",

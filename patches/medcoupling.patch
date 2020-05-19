@@ -1,7 +1,7 @@
-diff -ruNb MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/CMakeLists.txt MEDCOUPLING-9.3.0_new/src/MEDCoupling_Swig/CMakeLists.txt
---- MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/CMakeLists.txt	2019-05-20 11:50:00.000000000 +0200
-+++ MEDCOUPLING-9.3.0_new/src/MEDCoupling_Swig/CMakeLists.txt	2019-11-28 23:09:05.000000000 +0100
-@@ -87,11 +87,12 @@
+diff -ruNb medCoupling-9.4.0/src/MEDCoupling_Swig/CMakeLists.txt medCoupling-9.4.0_diff/src/MEDCoupling_Swig/CMakeLists.txt
+--- medCoupling-9.4.0/src/MEDCoupling_Swig/CMakeLists.txt	2019-08-13 10:45:58.000000000 +0200
++++ medCoupling-9.4.0_diff/src/MEDCoupling_Swig/CMakeLists.txt	2020-05-19 20:34:03.345069100 +0200
+@@ -87,7 +87,7 @@
          swig_ready)
  ENDIF()
 
@@ -10,44 +10,27 @@ diff -ruNb MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/CMakeLists.txt MEDCOUPLING-9.3
    # Under Windows MEDCoupling conflicts wiht medcoupling from PyWrapping
    SET(MEDCouling_target_name MEDCouplingCompat)
    SET_PROPERTY(SOURCE MEDCoupling.i PROPERTY SWIG_MODULE_NAME MEDCouplingCompat)
-   SET_PROPERTY(SOURCE MEDCoupling.i PROPERTY COMPILE_DEFINITIONS WIN32)
-+  SET(SWIG_MODULE_MEDCouplingCompat_EXTRA_FLAGS "${NUMPY_DEFINITIONS};${SCIPY_DEFINITIONS}")
- ELSE()
-   SET(MEDCouling_target_name MEDCoupling)
- ENDIF()
-@@ -102,7 +103,14 @@
-   SWIG_ADD_LIBRARY(${MEDCouling_target_name} LANGUAGE python SOURCES MEDCoupling.i)
- ENDIF()
-
--SWIG_LINK_LIBRARIES(${MEDCouling_target_name} ${PYTHON_LIBRARIES} ${PLATFORM_LIBS} medcouplingcpp)
-+IF(UNIX)
-+  SWIG_LINK_LIBRARIES(${MEDCouling_target_name} ${PLATFORM_LIBS} medcouplingcpp)
-+ELSE()
-+  SWIG_LINK_LIBRARIES(${MEDCouling_target_name} ${PYTHON_LIBRARIES} ${PLATFORM_LIBS} medcouplingcpp)
-+ENDIF()
+@@ -109,6 +109,9 @@
+   # ${PYTHON_LIBRARIES} not needed see https://www.python.org/dev/peps/pep-0513/#libpythonx-y-so-1
+   SWIG_LINK_LIBRARIES(${MEDCouling_target_name} ${PLATFORM_LIBS} medcouplingcpp)
+ ENDIF(WIN32)
 +IF(APPLE)
 +  SET_TARGET_PROPERTIES(_${MEDCouling_target_name} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 +ENDIF()
+ # ${PYTHON_LIBRARIES} not needed
  SWIG_CHECK_GENERATION(${MEDCouling_target_name})
  SET_SOURCE_FILES_PROPERTIES(MEDCouplingRemapper.i PROPERTIES CPLUSPLUS ON)
- IF ("${PYTHON_VERSION_MAJOR}" STREQUAL "3")
-@@ -124,7 +132,14 @@
-   SWIG_ADD_LIBRARY(MEDCouplingRemapper LANGUAGE python SOURCES MEDCouplingRemapper.i)
- ENDIF()
-
--SWIG_LINK_LIBRARIES(MEDCouplingRemapper ${PYTHON_LIBRARIES} medcouplingremapper)
-+IF(UNIX)
-+  SWIG_LINK_LIBRARIES(MEDCouplingRemapper medcouplingremapper)
-+ELSE()
-+  SWIG_LINK_LIBRARIES(MEDCouplingRemapper ${PYTHON_LIBRARIES} medcouplingremapper)
-+ENDIF()
+@@ -137,6 +140,9 @@
+   # ${PYTHON_LIBRARIES} not needed see https://www.python.org/dev/peps/pep-0513/#libpythonx-y-so-1
+   SWIG_LINK_LIBRARIES(MEDCouplingRemapper medcouplingremapper)
+ ENDIF(WIN32)
 +IF(APPLE)
 +  SET_TARGET_PROPERTIES(_MEDCouplingRemapper PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 +ENDIF()
 
  IF(WIN32)
    SET_TARGET_PROPERTIES(_MEDCouplingRemapper PROPERTIES DEBUG_OUTPUT_NAME _MEDCouplingRemapper_d)
-@@ -133,7 +148,7 @@
+@@ -145,7 +151,7 @@
  INSTALL(TARGETS ${SWIG_MODULE_${MEDCouling_target_name}_REAL_NAME} ${SWIG_MODULE_MEDCouplingRemapper_REAL_NAME} DESTINATION ${MEDCOUPLING_INSTALL_PYTHON})
 
  SET(PYFILES_TO_INSTALL ${CMAKE_CURRENT_BINARY_DIR}/MEDCouplingRemapper.py)
@@ -56,53 +39,10 @@ diff -ruNb MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/CMakeLists.txt MEDCOUPLING-9.3
    SET(PYFILES_TO_INSTALL ${PYFILES_TO_INSTALL} ${CMAKE_CURRENT_BINARY_DIR}/MEDCouplingCompat.py)
  ELSE()
    SET(PYFILES_TO_INSTALL ${PYFILES_TO_INSTALL} ${CMAKE_CURRENT_BINARY_DIR}/MEDCoupling.py)
-diff -ruNb MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/MEDCouplingMemArray.i MEDCOUPLING-9.3.0_new/src/MEDCoupling_Swig/MEDCouplingMemArray.i
---- MEDCOUPLING-9.3.0/src/MEDCoupling_Swig/MEDCouplingMemArray.i	2019-05-20 11:50:00.000000000 +0200
-+++ MEDCOUPLING-9.3.0_new/src/MEDCoupling_Swig/MEDCouplingMemArray.i	2019-11-28 21:55:53.000000000 +0100
-@@ -2648,7 +2648,7 @@
-                 if(PyInt_Check(nbOfTuples))
-                   {
-                     int nbOfTuples1=PyInt_AS_LONG(nbOfTuples);
--                    if(nbOfTuples<0)
-+                    if(nbOfTuples1<0)
-                       throw INTERP_KERNEL::Exception("DataArrayInt::setValue : should be a positive set of allocated memory !");
-                     if(nbOfComp && nbOfComp != Py_None)
-                       {
-@@ -5836,7 +5836,7 @@
-               if(PyUnicode_Check(obj))
-                 {
-                   Py_ssize_t sz;
--                  char *pt=PyUnicode_AsUTF8AndSize(obj, &sz);
-+                  const char *pt=PyUnicode_AsUTF8AndSize(obj, &sz);
-                   if(sz==1)
-                     return self->findIdFirstEqual(pt[0]);
-                   else
-@@ -5873,7 +5873,7 @@
-               if(PyUnicode_Check(obj))
-                 {
-                   Py_ssize_t sz;
--                  char *pt=PyUnicode_AsUTF8AndSize(obj, &sz);
-+                  const char *pt=PyUnicode_AsUTF8AndSize(obj, &sz);
-                   if(sz==1)
-                     return self->presenceOfValue(pt[0]);
-                   else
-diff -ruNb MEDCOUPLING-9.3.0/src/PyWrapping/CMakeLists.txt MEDCOUPLING-9.3.0_new/src/PyWrapping/CMakeLists.txt
---- MEDCOUPLING-9.3.0/src/PyWrapping/CMakeLists.txt	2019-05-20 11:50:00.000000000 +0200
-+++ MEDCOUPLING-9.3.0_new/src/PyWrapping/CMakeLists.txt	2019-11-28 23:13:32.000000000 +0100
-@@ -58,7 +58,11 @@
-   ${PROJECT_BINARY_DIR}/doc
-   )
-
--SET(medcoupling_LIB_dependancies ${PYTHON_LIBRARIES} ${PLATFORM_LIBS} medcouplingremapper)
-+IF(UNIX)
-+  SET(medcoupling_LIB_dependancies ${PLATFORM_LIBS} medcouplingremapper)
-+ELSE()
-+  SET(medcoupling_LIB_dependancies ${PYTHON_LIBRARIES} ${PLATFORM_LIBS} medcouplingremapper)
-+ENDIF()
-
- IF(NOT MEDCOUPLING_MICROMED)
-   LIST(APPEND SWIG_MODULE_medcoupling_EXTRA_FLAGS -DWITH_MED_FILE)
-@@ -89,6 +93,9 @@
+diff -ruNb medCoupling-9.4.0/src/PyWrapping/CMakeLists.txt medCoupling-9.4.0_diff/src/PyWrapping/CMakeLists.txt
+--- medCoupling-9.4.0/src/PyWrapping/CMakeLists.txt	2019-08-13 10:45:58.000000000 +0200
++++ medCoupling-9.4.0_diff/src/PyWrapping/CMakeLists.txt	2020-05-19 20:35:52.230447600 +0200
+@@ -94,6 +94,9 @@
  ENDIF()
 
  SWIG_LINK_LIBRARIES(medcoupling ${medcoupling_LIB_dependancies})
