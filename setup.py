@@ -13,9 +13,9 @@ from setuptools.command.build_py import build_py as _build_py
 # Metadata
 __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
-__copyright__ = "Copyright (c) 2019 {} <{}>".format(__author__, __email__)
+__copyright__ = "Copyright (c) 2019-2021 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "9.4.0r1"
+__version__ = "9.7.0r1"
 __status__ = "Development Status :: 4 - Beta"
 
 basedir = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ def download_build_medcoupling():
 
     # Source file to download
     MEDCOUPLING_SRC = (
-        "http://files.salome-platform.org/Salome/other/medCoupling-9.4.0.tar.gz"
+        "http://files.salome-platform.org/Salome/other/medCoupling-9.7.0.tar.gz"
     )
 
     # Environment variables
@@ -87,13 +87,6 @@ def download_build_medcoupling():
     print(f"Extracting...")
     src.extractall()
 
-    # Apply patches
-    print("Applying patch...")
-    subprocess.run(
-        "patch -s -p0 < patches/configuration.patch", cwd=basedir, shell=True
-    )
-    subprocess.run("patch -s -p0 < patches/medcoupling.patch", cwd=basedir, shell=True)
-
     # Building
     builddir = os.path.join(sourcedir, "build")
     os.makedirs(builddir, exist_ok=True)
@@ -116,8 +109,6 @@ def download_build_medcoupling():
         cmake_args += [f"-DSWIG_ROOT_DIR={SWIG_ROOT_DIR}"]
     if platform.system() != "Windows":
         cmake_args += ["-DMEDCOUPLING_BUILD_STATIC=ON"]
-    else:
-        cmake_args += ["-G", "Visual Studio 15 2017 Win64"]
 
     env = os.environ.copy()
     env["CONFIGURATION_ROOT_DIR"] = configdir
@@ -195,7 +186,6 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Physics",
     ],
     cmdclass={"build_py": build_py, "bdist_wheel": bdist_wheel},
 )
