@@ -22,7 +22,7 @@ def build_linux(c):
     print(f"Building v{VERSION} for Linux, using Docker...")
     basedir = os.path.dirname(os.path.realpath(__file__))
     c.run(
-        f"docker run --rm -v {basedir}:/io -w /io quay.io/pypa/manylinux2010_x86_64 /io/travis/build-wheels.sh"
+        f"docker run --rm -v {basedir}:/io -w /io quay.io/pypa/manylinux2014_x86_64 /io/travis/build-wheels.sh"
     )
 
 

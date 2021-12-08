@@ -29,7 +29,7 @@ To install MEDCoupling, you can now simply do
 pip install -U medcoupling
 ```
 
-Binary wheels are available for 64-bit Windows (`win_amd64`), Linux-like platforms (`manylinux2010_x86_64`) and macOS (`macosx_10_11_x86_64`).
+Binary wheels are available for 64-bit Windows (`win_amd64`), Linux-like platforms (`manylinux2014_x86_64`) and macOS (`macosx_10_11_x86_64`).
 
 To assure that MEDCoupling is well installed, try importing it in your Python
 
@@ -45,7 +45,7 @@ Running `python setup.py install` or `pip install .` will
 2. Build the C++ / Python libraries using `cmake` and `swig`
 3. Distribute and install generated files using `setuptools`
 
-The building process has been tested under Windows 10 with Visual Studio 2019, under Ubuntu 18.04 with gcc 7.4, under the [manylinux2010](https://github.com/pypa/python-manylinux-demo) platform and under macOS 10.15.
+The building process has been tested under Windows 10 with Visual Studio 2019, under Ubuntu 18.04 with gcc 7.4, under the [manylinux2014](https://github.com/pypa/manylinux) platform and under macOS 10.15.
 
 ## Uploading to PyPI
 
@@ -59,7 +59,7 @@ python setup.py sdist
 python setup.py bdist_wheel --plat-name win_amd64
 
 # Binary on Linux
-python3 setup.py bdist_wheel --plat-name manylinux1_x86_64
+python3 setup.py bdist_wheel --plat-name manylinux2014_x86_64
 
 # Binary on macOS
 python3 setup.py bdist_wheel --plat-name macosx_10_11_x86_64
