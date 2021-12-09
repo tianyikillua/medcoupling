@@ -15,7 +15,7 @@ __author__ = "Tianyi Li"
 __email__ = "tianyikillua@gmail.com"
 __copyright__ = "Copyright (c) 2019-2021 {} <{}>".format(__author__, __email__)
 __license__ = "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)"
-__version__ = "9.7.0r1"
+__version__ = "9.7.0r2"
 __status__ = "Development Status :: 4 - Beta"
 
 basedir = os.path.dirname(os.path.realpath(__file__))
@@ -101,6 +101,7 @@ def download_build_medcoupling():
         "-DMEDCOUPLING_BUILD_TESTS=OFF",
         "-DMEDCOUPLING_ENABLE_RENUMBER=OFF",
         "-DMEDCOUPLING_WITH_FILE_EXAMPLES=OFF",
+        "-DMEDCOUPLING_USE_64BIT_IDS=OFF",
         "-DCMAKE_BUILD_TYPE=" + BUILD_TYPE,
     ]
     if PYTHON_ROOT_DIR is not None:
